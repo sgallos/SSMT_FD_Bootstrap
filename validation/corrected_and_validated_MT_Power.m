@@ -4,15 +4,12 @@
 fs = 178;
 
 % Define time range (50s–100s)
-start_time = 4830; % seconds
+start_time = 150*60; % seconds
 interval_duration = 50; 
 end_time = start_time + interval_duration;  % seconds
 window_duration = 2;
 
 % Compute the corresponding indices in spect2
-idx_start = ceil(start_time / win); % First index corresponding to >= 50s
-idx_end = floor(end_time / win);    % Last index corresponding to <= 100s
-
 idx_start = ceil(start_time / window_duration);
 idx_end = floor(end_time / window_duration);
 
@@ -28,7 +25,7 @@ spect2_trimmed = spect2(:, idx_start:idx_end);
 spect_taper_trimmed = spect2_taper(:, :, idx_start:idx_end); % Frequency x Tapers x Time Windows
 
 % Define correct frequency vector based on taper_power size
-sf = 1 / win; % Step size in frequency
+sf = 1 / window_duration; % Step size in frequency
 % sf = 1; % Step size in frequency
 f = (0:size(spect_taper_trimmed,1)-1) * sf; % Now matches the number of frequency bins (250)
 

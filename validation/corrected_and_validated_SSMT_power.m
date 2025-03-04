@@ -5,6 +5,8 @@ fs = 178;
 start_time = 250; % seconds
 interval_duration = 50; 
 end_time = start_time + interval_duration;  % seconds
+window_duration = 2;
+win = window_duration;
 
 % Compute the corresponding indices in the spectrogram
 idx_start = ceil(start_time / win); % First index corresponding to >= 50s

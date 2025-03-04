@@ -3,7 +3,7 @@
 % fs = 125;
 fs = 178;
 window_duration = 2; % Duration of each window (seconds)
-start_time = 250; % Start time in seconds
+start_time = 150*60; % Start time in seconds
 interval_duration = 50; % Duration of interval (seconds)
 end_time = start_time + interval_duration;
 
