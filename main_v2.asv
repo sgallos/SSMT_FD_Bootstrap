@@ -26,17 +26,43 @@
 %
 %************************************************************************** 
 %% 1. Setup Environment
-clear; close all; clc;
-disp('Initializing State-Space Multitaper Spectrogram Analysis...');
 
+% Define experiment start time (HH:MM:SS)
+experiment_start = [8, 19, 44];  % 08:49:22 (HH, MM, SS)
 
-% Select dataset (change filename to use different datasets)
-<<<<<<< HEAD
+% Define desired start and end times (HH:MM:SS)
+desired_start = [10, 6, 0];   % 10:06:00
+desired_end = [11, 36, 0];    % 11:36:00
+
+% Convert all times to seconds from experiment start
+start_time = (desired_start(1) - experiment_start(1)) * 3600 + ...
+             (desired_start(2) - experiment_start(2)) * 60 + ...
+             (desired_start(3) - experiment_start(3));
+
+end_time = (desired_end(1) - experiment_start(1)) * 3600 + ...
+           (desired_end(2) - experiment_start(2)) * 60 + ...
+           (desired_end(3) - experiment_start(3));
+
 datasets = {'Mass_13_Sedline_copy_raw.mat', 'SED10.mat', 'ACP_Concatenated.mat'};  % Cell array
-=======
-datasets = {'Mass_13_Sedline_copy_raw.mat', 'SED10.mat', 'test_christian.mat'};  % Cell array
->>>>>>> b5adebb595f303e5bf7a3faeeca096124c5e59a4
 dataset_name = datasets{3};  % Use curly braces {} to access elements
+channel = 2; % Electrode we're using
+fs = 178;  % Sampling frequency (Hz)
+fmax = 25;  % Max freq to analyze
+cmin = -15; % Min value in dB for spectral analysis
+cmax = 10; % Max value in dB for spectral analysis
+win_length = 2; % length of window (second)
+
+% Channel # - corresponding channel location; % 1 - R2 ;% 2 - R1
+% 3 - L1; % 4 - L2
+
+% Channel column in MATLAB - Sedline channel - 10-20 Channel
+% 1 - R2 - F8
+% 2 - R1 - Fp2
+% 3 - L1 - Fp1
+% 4 - L2 - F7
+
+% clear; close all; clc;
+disp('Initializing State-Space Multitaper Spectrogram Analysis...');
 
 data_path = fullfile('data', dataset_name);
 
@@ -46,22 +72,33 @@ data = load_eeg_data(data_path);
 % Load EEG data
 disp(['Loading EEG data from ', dataset_name, '...']);
 
-fs = 178;  % Sampling frequency (Hz)
-elec = 2; % Select Electrode
 
 % Extract EEG data
 if strcmp(dataset_name, 'Mass_13_Sedline_copy_raw.mat')
-    eeg_data = data(1:883236, elec);
+    eeg_data = data(1:883236, channel);
     disp(['For Black Swan #2 has been the cleanest. We only pick the ' ...
         'beginning because the rest is noise.'])
-else
-<<<<<<< HEAD
+elseif strcmp(dataset_name, 'ACP_Concatenated.mat')
     % eeg_data = data(:, elec);
-    eeg_data = data(1132282:2265762, elec);
-=======
-    eeg_data = data(:, elec); 
->>>>>>> b5adebb595f303e5bf7a3faeeca096124c5e59a4
+    start_idx = round(start_time * fs * 60) + 1;  % Convert and adjust to 1-based index
+    end_idx = round(end_time * fs* 60) + 1;
+    eeg_data = data(start_idx:end_idx, channel);
+    num_samples = length(data);  % Total number of EEG samples
+
+    % Generate time vector in seconds
+    time_seconds = (0:num_samples-1) / fs;
+    
+    %Generate time vector in minutes
+    time_minutes = time_seconds/60;
+    
+    % Trim the time vector to match EEG data length
+    trimmed_time = time_minutes(start_idx:end_idx);
+else
+    eeg_data = data(:, channel);
 end
+
+
+
 
 
 disp('EEG data loaded successfully.');
@@ -70,7 +107,6 @@ disp('EEG data loaded successfully.');
 %% 2. Preprocessing
 disp('Preprocessing EEG data...');
 Nt = length(eeg_data);
-win_length = 2; % length of window (second)
 sf = 1/win_length; % one step of frequency
 nw = win_length*fs; % the number of elements in a window
 N = floor(Nt/nw); % the number of window
@@ -143,19 +179,11 @@ spect3 = SS_ST(yy, fs, sn, on, is, iv);
 %% 5. Plot Spectrograms
 disp('Plotting results...');
 
-<<<<<<< HEAD
 Individual_Spectrogram = true; %make false if want all spectrograms/periodograms
 
 if Individual_Spectrogram
         spectrograms = {...
         {'Multitaper Spectrogram', spect2}
-=======
-Individual_Spectrogram = false;
-
-if Individual_Spectrogram
-        spectrograms = {...
-        {'State-Space Multitaper Spectrogram', spect4}
->>>>>>> b5adebb595f303e5bf7a3faeeca096124c5e59a4
     };  
 else 
         spectrograms = {...
@@ -165,37 +193,45 @@ else
         {'State-Space Multitaper Spectrogram', spect4}
     };  
 end      
-  
-plot_spectrograms(spectrograms, N, win_length, fs);
+%%
+
+if exist('trimmed_time', 'var')
+    time_vector = trimmed_time;
+else
+    time_vector = [];
+end
+
+plot_spectrograms(spectrograms, N, win_length, fs, Individual_Spectrogram,time_vector,fmax,cmin,cmax);
 
 %% Function: Plot Spectrograms
-<<<<<<< HEAD
-function plot_spectrograms(spectrograms, N, win, fs, Individual_Spectrogram)
-=======
-function plot_spectrograms(spectrograms, N, win, fs)
->>>>>>> b5adebb595f303e5bf7a3faeeca096124c5e59a4
-    fmax = 25;  
-    cmin = -15;
-    cmax = 10;
+function plot_spectrograms(spectrograms, N, win, fs, Individual_Spectrogram, time_vector,fmax,cmin,cmax)
 
     num_plots = length(spectrograms);  % Dynamically determine number of spectrograms
-<<<<<<< HEAD
     
+    % If time_vector is missing or empty, use default (1:N) * win / 60
+    if nargin < 6 || isempty(time_vector)
+        disp('No time vector provided. Using default time scale (1:N) * win / 60.');
+        time_vector = (1:N) * win / 60;  % Default time in minutes
+    end
+
+    % Figure settings based on Individual_Spectrogram flag
     if Individual_Spectrogram
+        fig_width = 1200;
+        fig_height = 400;
+        figure('Position', [100 100 fig_width fig_height]);
+    else
         figure('Color', 'w', 'Units', 'normalized', 'Position', [0 0 0.7 0.9]);
     end
-    
-=======
 
-    figure('Color', 'w', 'Units', 'normalized', 'Position', [0 0 0.7 0.9]);
->>>>>>> b5adebb595f303e5bf7a3faeeca096124c5e59a4
-
+    % Loop through spectrograms and plot them
     for i = 1:num_plots
-        subplot(num_plots, 1, i);  % Dynamically create subplots based on number of spectrograms
+        subplot(num_plots, 1, i);  % Dynamically create subplots based on spectrogram count
         title_text = spectrograms{i}{1};  % Extract subplot title
         spect_data = spectrograms{i}{2};  % Extract spectrogram data
 
-        imagesc((1:N)*win/60, (0:fmax*win)/win, pow2db(spect_data(1:fmax*win,:)));
+        % Plot using time_vector (either user-provided or default)
+        imagesc(time_vector, (0:fmax*win)/win, pow2db(spect_data(1:fmax*win,:)));
+        
         axis xy;
         set(gca, 'clim', [cmin cmax]);
         ylabel('Frequency (Hz)');
@@ -204,7 +240,8 @@ function plot_spectrograms(spectrograms, N, win, fs)
         title(title_text);
     end
     
-    xlabel('Time (min)');
+    xlabel('Time (minutes)');  % Time is always in minutes
     disp('Plotting complete.');
 end
+
 
