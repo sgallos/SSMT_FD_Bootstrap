@@ -31,7 +31,7 @@ disp('Initializing State-Space Multitaper Spectrogram Analysis...');
 
 
 % Select dataset (change filename to use different datasets)
-datasets = {'Mass_13_Sedline_copy_raw.mat', 'SED10.mat'};  % Cell array
+datasets = {'Mass_13_Sedline_copy_raw.mat', 'SED10.mat', 'test_christian.mat'};  % Cell array
 dataset_name = datasets{3};  % Use curly braces {} to access elements
 
 data_path = fullfile('data', dataset_name);
