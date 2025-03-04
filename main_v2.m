@@ -26,7 +26,7 @@
 %
 %************************************************************************** 
 %% 1. Setup Environment
-clear; close all; clc;
+% clear; close all; clc;
 disp('Initializing State-Space Multitaper Spectrogram Analysis...');
 
 
