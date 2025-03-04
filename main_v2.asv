@@ -31,7 +31,11 @@ disp('Initializing State-Space Multitaper Spectrogram Analysis...');
 
 
 % Select dataset (change filename to use different datasets)
+<<<<<<< HEAD
 datasets = {'Mass_13_Sedline_copy_raw.mat', 'SED10.mat', 'ACP_Concatenated.mat'};  % Cell array
+=======
+datasets = {'Mass_13_Sedline_copy_raw.mat', 'SED10.mat', 'test_christian.mat'};  % Cell array
+>>>>>>> b5adebb595f303e5bf7a3faeeca096124c5e59a4
 dataset_name = datasets{3};  % Use curly braces {} to access elements
 
 data_path = fullfile('data', dataset_name);
@@ -51,8 +55,12 @@ if strcmp(dataset_name, 'Mass_13_Sedline_copy_raw.mat')
     disp(['For Black Swan #2 has been the cleanest. We only pick the ' ...
         'beginning because the rest is noise.'])
 else
+<<<<<<< HEAD
     % eeg_data = data(:, elec);
     eeg_data = data(1132282:2265762, elec);
+=======
+    eeg_data = data(:, elec); 
+>>>>>>> b5adebb595f303e5bf7a3faeeca096124c5e59a4
 end
 
 
@@ -135,11 +143,19 @@ spect3 = SS_ST(yy, fs, sn, on, is, iv);
 %% 5. Plot Spectrograms
 disp('Plotting results...');
 
+<<<<<<< HEAD
 Individual_Spectrogram = true; %make false if want all spectrograms/periodograms
 
 if Individual_Spectrogram
         spectrograms = {...
         {'Multitaper Spectrogram', spect2}
+=======
+Individual_Spectrogram = false;
+
+if Individual_Spectrogram
+        spectrograms = {...
+        {'State-Space Multitaper Spectrogram', spect4}
+>>>>>>> b5adebb595f303e5bf7a3faeeca096124c5e59a4
     };  
 else 
         spectrograms = {...
@@ -153,17 +169,26 @@ end
 plot_spectrograms(spectrograms, N, win_length, fs);
 
 %% Function: Plot Spectrograms
+<<<<<<< HEAD
 function plot_spectrograms(spectrograms, N, win, fs, Individual_Spectrogram)
+=======
+function plot_spectrograms(spectrograms, N, win, fs)
+>>>>>>> b5adebb595f303e5bf7a3faeeca096124c5e59a4
     fmax = 25;  
     cmin = -15;
     cmax = 10;
 
     num_plots = length(spectrograms);  % Dynamically determine number of spectrograms
+<<<<<<< HEAD
     
     if Individual_Spectrogram
         figure('Color', 'w', 'Units', 'normalized', 'Position', [0 0 0.7 0.9]);
     end
     
+=======
+
+    figure('Color', 'w', 'Units', 'normalized', 'Position', [0 0 0.7 0.9]);
+>>>>>>> b5adebb595f303e5bf7a3faeeca096124c5e59a4
 
     for i = 1:num_plots
         subplot(num_plots, 1, i);  % Dynamically create subplots based on number of spectrograms

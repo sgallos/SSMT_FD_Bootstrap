@@ -117,14 +117,14 @@ disp(['Bootstrap resampling completed: ', num2str(num_bootstrap_samples), ' repl
 
 %%
 % Define time range (50s–100s)
-start_time = 250; % seconds
-interval_duration = 50; 
+start_time = 60*50; % seconds
+interval_duration = 100; 
 end_time = start_time + interval_duration;  % seconds
 window_duration = 2;
 
 % Compute the corresponding indices in spect2
-idx_start = ceil(start_time / win); % First index corresponding to >= 50s
-idx_end = floor(end_time / win);    % Last index corresponding to <= 100s
+idx_start = ceil(start_time / window_duration); % First index corresponding to >= 50s
+idx_end = floor(end_time / window_duration);    % Last index corresponding to <= 100s
 
 
 % Extract bootstrapped spectra for the specified time interval
@@ -152,7 +152,7 @@ ci_upper_db = pow2db(ci_upper);
 
 % Define frequency vector
 % Define correct frequency vector based on taper_power size
-sf = 1 / win; % Step size in frequency
+sf = 1 / window_duration; % Step size in frequency
 f = (0:size(bootstrapped_spectra_trimmed,1)-1) * sf; % Now matches the number of frequency bins (250)
 
 
@@ -177,10 +177,11 @@ hold off;
 
 %%
 % Define time range for Interval 1
-start_time_1 = 4620; % seconds
-interval_duration = 50;
+start_time_1 = 50*60; % seconds
+interval_duration = 100;
 end_time_1 = start_time_1 + interval_duration; % seconds
 window_duration = 2;
+win=window_duration;
 
 % Compute the corresponding indices for Interval 1
 idx_start_1 = ceil(start_time_1 / win); % First index
@@ -194,7 +195,7 @@ bootstrapped_spectra_mean_1 = mean(bootstrapped_spectra_trimmed_1, 2);
 bootstrapped_spectra_mean_1 = squeeze(bootstrapped_spectra_mean_1);
 
 % Define time range for Interval 2
-start_time_2 = 4830; % seconds
+start_time_2 = 60*60; % seconds
 end_time_2 = start_time_2 + interval_duration; % seconds
 
 % Compute the corresponding indices for Interval 2

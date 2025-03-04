@@ -47,6 +47,10 @@ function all_eeg_data = flattenConcatEDF(folderPath)
      
     end
 
+    %Save the final concatenated EEG data to the current directory
+    saveFile = fullfile(pwd, 'flattened_eeg_data.mat');
+    save(saveFile, 'all_eeg_data');
+
     % Final status
     fprintf('Done!')
 end
