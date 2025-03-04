@@ -239,7 +239,13 @@ sf = 1 / win;
 f = (0:size(bootstrapped_spectra_trimmed_1,1)-1) * sf; % Matches frequency bins
 
 % Plot the confidence intervals and mean power spectra for both intervals
-figure; hold on;
+fig_width = 1200;  % Width in pixels
+fig_height = 800;  % Height in pixels
+
+% Create figure with specific size
+figure('Position', [100, 100, fig_width, fig_height]); 
+hold on;
+
 
 % Plot shaded confidence intervals for Interval 1 (Red)
 fill([f'; flipud(f')], [ci_upper_1_db; flipud(ci_lower_1_db)], 'r', 'FaceAlpha', 0.2, 'EdgeColor', 'none');
