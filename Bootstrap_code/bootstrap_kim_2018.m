@@ -1,3 +1,41 @@
+%% Bootstrapped spectra
+% Need to run main v2 first to import data and time vector, pre-process and
+% create spectra
+
+% Define desired start and end times based on absolute time as visualized
+% in spectrograms from main_v2
+desired_start1 = 150;       %minutes
+desired_start2 = 152;       %minutes
+epoch_length = 120;         %seconds
+
+epoch_length = epoch_length/win_length; %dividing by 2 to account for window length
+
+% Define desired start and end times based on chronological time
+% (HH:MM:SS). Convert all times to seconds from experiment start. Needs to
+% be completed. 
+% desired_start1 = [10, 49, 0];   % 10:49:00
+% desired_start2 = [10, 51, 0];   % 10:49:00
+% epoch_length = 120;             %seconds
+% 
+% start_time1 = (desired_start1(1) - experiment_start(1)) * 3600 + ...
+%              (desired_start1(2) - experiment_start(2)) * 60 + ...
+%              (desired_start1(3) - experiment_start(3));
+% 
+% start_time2 = (desired_start2(1) - experiment_start(1)) * 3600 + ...
+%              (desired_start2(2) - experiment_start(2)) * 60 + ...
+%              (desired_start2(3) - experiment_start(3));
+
+
+%Find the index where the trimmed_time is closest to desired start
+[~,closest_idx_1]= (min(abs(trimmed_time-desired_start1)));
+[~,closest_idx_2]= (min(abs(trimmed_time-desired_start2)));
+start_time1 = ceil(closest_idx_1/win_length/178); % calculating the number of indexed spectrogram time windows after the start of the spectrogram
+start_time2 = ceil(closest_idx_2/win_length/178);
+
+
+disp(['The index closest to minute ', num2str(start_time1), ' is ' num2str(closest_idx_1)])
+disp(['The actual time at this index is ', num2str(trimmed_time(closest_idx_1)), ' minutes'])
+
 % Step 1: Estimate the spectral power S_hat (⋅) using the multitaper spectral estimation of (4)
 S_hat = spect2; % Ensure spect2 is computed correctly
 
@@ -115,20 +153,13 @@ end
 disp(['Bootstrap resampling completed: ', num2str(num_bootstrap_samples), ' replicates generated.']);
 
 
-%%
-% Define time range (50s–100s)
-start_time = 60*50; % seconds
-interval_duration = 100; 
-end_time = start_time + interval_duration;  % seconds
+%% Bootstrapped spectra for a single epoch
+% Define time range 
+end_time1 = start_time1 + epoch_length;  % in spec window length units
 window_duration = 2;
 
-% Compute the corresponding indices in spect2
-idx_start = ceil(start_time / window_duration); % First index corresponding to >= 50s
-idx_end = floor(end_time / window_duration);    % Last index corresponding to <= 100s
-
-
 % Extract bootstrapped spectra for the specified time interval
-bootstrapped_spectra_trimmed = bootstrapped_spectra(:, idx_start:idx_end, :); % (250 × time_windows × 1000)
+bootstrapped_spectra_trimmed = bootstrapped_spectra(:, start_time1:end_time1, :); % (250 × time_windows × 1000)
 
 % Compute mean power spectrum across time bins
 bootstrapped_spectra_mean = mean(bootstrapped_spectra_trimmed, 2); % Average over time bins
@@ -175,35 +206,20 @@ ylim([-10 20]); % Adjust as needed
 legend('95% Confidence Interval', 'Bootstrapped Power Spectrum');
 hold off;
 
-%%
-% Define time range for Interval 1
-start_time_1 = 50*60; % seconds
-interval_duration = 100;
-end_time_1 = start_time_1 + interval_duration; % seconds
-window_duration = 2;
-win=window_duration;
-
-% Compute the corresponding indices for Interval 1
-idx_start_1 = ceil(start_time_1 / win); % First index
-idx_end_1 = floor(end_time_1 / win);   % Last index
+%% Boostrapped spectra for 2 epochs
 
 % Extract bootstrapped spectra for Interval 1
-bootstrapped_spectra_trimmed_1 = bootstrapped_spectra(:, idx_start_1:idx_end_1, :);
+bootstrapped_spectra_trimmed_1 = bootstrapped_spectra(:, start_time1:end_time1, :);
 
 % Compute mean power spectrum across time bins for Interval 1
 bootstrapped_spectra_mean_1 = mean(bootstrapped_spectra_trimmed_1, 2);
 bootstrapped_spectra_mean_1 = squeeze(bootstrapped_spectra_mean_1);
 
 % Define time range for Interval 2
-start_time_2 = 60*60; % seconds
-end_time_2 = start_time_2 + interval_duration; % seconds
-
-% Compute the corresponding indices for Interval 2
-idx_start_2 = ceil(start_time_2 / win);
-idx_end_2 = floor(end_time_2 / win);
+end_time2 = start_time2 + epoch_length;  % in spec window length units
 
 % Extract bootstrapped spectra for Interval 2
-bootstrapped_spectra_trimmed_2 = bootstrapped_spectra(:, idx_start_2:idx_end_2, :);
+bootstrapped_spectra_trimmed_2 = bootstrapped_spectra(:, start_time2:end_time2, :);
 
 % Compute mean power spectrum across time bins for Interval 2
 bootstrapped_spectra_mean_2 = mean(bootstrapped_spectra_trimmed_2, 2);
@@ -236,7 +252,7 @@ ci_lower_2_db = pow2db(ci_lower_2);
 ci_upper_2_db = pow2db(ci_upper_2);
 
 % Define frequency vector
-sf = 1 / win;
+sf = 1 / win_length;
 f = (0:size(bootstrapped_spectra_trimmed_1,1)-1) * sf; % Matches frequency bins
 
 % Plot the confidence intervals and mean power spectra for both intervals
@@ -263,7 +279,7 @@ h2 = plot(f, bootstrap_mean_2_db, 'b', 'LineWidth', 1.5);
 xlabel('Frequency (Hz)', 'FontSize', 40);
 ylabel('Power (dB)', 'FontSize', 40);
 % title('Bootstrapped Power Spectra for Two Intervals', 'FontSize', 20);
-legend([h1, h2], {'Pre-Emergence', 'Post-Extubation'}, 'FontSize', 40);
+legend([h1, h2], {'Epoch 1', 'Epoch 2'}, 'FontSize', 40);
 
 % Increase tick label size
 set(gca, 'FontSize', 40);

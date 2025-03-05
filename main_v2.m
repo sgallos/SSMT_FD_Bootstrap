@@ -27,12 +27,30 @@
 %************************************************************************** 
 %% 1. Setup Environment
 
+% clear; close all; clc;
+
+dataset_name = 'ACP_Concatenated.mat';  % File name of the .mat dataset to be loaded. Use the flattenConcatEDG.m helper function to concatenate the multiple EDF's from a Sedline Root download first, and save as .mat
+
 % Define experiment start time (HH:MM:SS)
 experiment_start = [8, 19, 44];  % 08:49:22 (HH, MM, SS)
 
 % Define desired start and end times (HH:MM:SS)
 desired_start = [10, 6, 0];   % 10:06:00
 desired_end = [11, 36, 0];    % 11:36:00
+
+% Setting variable parameters
+channel = 4; % Electrode we're using
+fs = 178;    % Sampling frequency (Hz)
+fmax = 30;   % Max freq to analyze
+cmin = -10;  % Min value in dB for spectral analysis
+cmax = 15;   % Max value in dB for spectral analysis
+win_length = 2; % length of window (second)
+
+% Channel column in MATLAB - Sedline channel - 10-20 Channel
+% 1 - R2 - F8
+% 2 - R1 - Fp2
+% 3 - L1 - Fp1
+% 4 - L2 - F7
 
 % Convert all times to seconds from experiment start
 start_time = (desired_start(1) - experiment_start(1)) * 3600 + ...
@@ -43,25 +61,6 @@ end_time = (desired_end(1) - experiment_start(1)) * 3600 + ...
            (desired_end(2) - experiment_start(2)) * 60 + ...
            (desired_end(3) - experiment_start(3));
 
-datasets = {'Mass_13_Sedline_copy_raw.mat', 'SED10.mat', 'ACP_Concatenated.mat'};  % Cell array
-dataset_name = datasets{3};  % Use curly braces {} to access elements
-channel = 2; % Electrode we're using
-fs = 178;  % Sampling frequency (Hz)
-fmax = 25;  % Max freq to analyze
-cmin = -15; % Min value in dB for spectral analysis
-cmax = 10; % Max value in dB for spectral analysis
-win_length = 2; % length of window (second)
-
-% Channel # - corresponding channel location; % 1 - R2 ;% 2 - R1
-% 3 - L1; % 4 - L2
-
-% Channel column in MATLAB - Sedline channel - 10-20 Channel
-% 1 - R2 - F8
-% 2 - R1 - Fp2
-% 3 - L1 - Fp1
-% 4 - L2 - F7
-
-% clear; close all; clc;
 disp('Initializing State-Space Multitaper Spectrogram Analysis...');
 
 data_path = fullfile('data', dataset_name);
@@ -126,7 +125,7 @@ end
 frequencyY = fft(kyy,nw,1);
 
 disp('EEG data pre-processed successfully.');
-%% 3. EM Algorithm
+%% 3. EM Algorithm, reduces bleeding from other frequencies
 disp('Performing EM algorithm data...');
 % First we can limit the frequency range to 0 to (desired) Hz and we can adjust
 % the max level depending on the EEG data for greater denoising. 
@@ -193,7 +192,6 @@ else
         {'State-Space Multitaper Spectrogram', spect4}
     };  
 end      
-%%
 
 if exist('trimmed_time', 'var')
     time_vector = trimmed_time;
