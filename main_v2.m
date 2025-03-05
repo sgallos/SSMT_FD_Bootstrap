@@ -29,22 +29,24 @@
 
 % clear; close all; clc;
 
-dataset_name = 'ACP_Concatenated.mat';  % File name of the .mat dataset to be loaded. Use the flattenConcatEDG.m helper function to concatenate the multiple EDF's from a Sedline Root download first, and save as .mat
+dataset_name = 'NeuralRecruit3.mat';  % File name of the .mat dataset to be loaded. Use the flattenConcatEDG.m helper function to concatenate the multiple EDF's from a Sedline Root download first, and save as .mat
 
 % Define experiment start time (HH:MM:SS)
-experiment_start = [8, 19, 44];  % 08:49:22 (HH, MM, SS)
+experiment_start = [14, 40, 00];  % 08:49:22 (HH, MM, SS)
 
 % Define desired start and end times (HH:MM:SS)
-desired_start = [10, 6, 0];   % 10:06:00
-desired_end = [11, 36, 0];    % 11:36:00
+desired_start = [14, 40, 00];   % 10:06:00
+desired_end = [16, 35, 00];    % 11:36:00
 
 % Setting variable parameters
-channel = 4; % Electrode we're using
+channel = 1; % Electrode we're using
 fs = 178;    % Sampling frequency (Hz)
 fmax = 30;   % Max freq to analyze
-cmin = -10;  % Min value in dB for spectral analysis
-cmax = 15;   % Max value in dB for spectral analysis
+cmin = -15;  % Min value in dB for spectral analysis
+cmax = 5;   % Max value in dB for spectral analysis
 win_length = 2; % length of window (second)
+Individual_Spectrogram = true; %make false if want all spectrograms/periodograms
+
 
 % Channel column in MATLAB - Sedline channel - 10-20 Channel
 % 1 - R2 - F8
@@ -73,11 +75,6 @@ disp(['Loading EEG data from ', dataset_name, '...']);
 
 
 % Extract EEG data
-if strcmp(dataset_name, 'Mass_13_Sedline_copy_raw.mat')
-    eeg_data = data(1:883236, channel);
-    disp(['For Black Swan #2 has been the cleanest. We only pick the ' ...
-        'beginning because the rest is noise.'])
-elseif strcmp(dataset_name, 'ACP_Concatenated.mat')
     % eeg_data = data(:, elec);
     start_idx = round(start_time * fs) + 1;  % Convert and adjust to 1-based index
     end_idx = round(end_time * fs) + 1;
@@ -92,9 +89,6 @@ elseif strcmp(dataset_name, 'ACP_Concatenated.mat')
     
     % Trim the time vector to match EEG data length
     trimmed_time = time_minutes(start_idx:end_idx);
-else
-    eeg_data = data(:, channel);
-end
 
 
 
@@ -175,10 +169,10 @@ spect3 = SS_ST(yy, fs, sn, on, is, iv);
 % state-space multitaper spectrogram
 [spect4, results_MT] = SS_MT_cov_v3(yy, fs, TW, K, mtSn, mtOn, mtIs, mtIv);
 
+disp('Spectral estimates computed.');
+
 %% 5. Plot Spectrograms
 disp('Plotting results...');
-
-Individual_Spectrogram = true; %make false if want all spectrograms/periodograms
 
 if Individual_Spectrogram
         spectrograms = {...

@@ -4,8 +4,8 @@
 
 % Define desired start and end times based on absolute time as visualized
 % in spectrograms from main_v2
-desired_start1 = 150;       %minutes
-desired_start2 = 152;       %minutes
+desired_start1 = 30;       %minutes
+desired_start2 = 40;       %minutes
 epoch_length = 120;         %seconds
 
 epoch_length = epoch_length/win_length; %dividing by 2 to account for window length
@@ -71,7 +71,7 @@ s_m = cat(1, s_j, s_L_j);
 
 
 
-%% test
+%% Step 2 test
 % Extremely important as bootstrap resample relies on assumption that
 % fourier coefficients follow a normal distribution
 % Compute mean and standard deviation across all elements of s_m
