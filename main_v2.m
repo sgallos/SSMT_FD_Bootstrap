@@ -21,32 +21,40 @@
 %   This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
 %   (http://creativecommons.org/licenses/by-nc-sa/4.0/)
 %
-%   Last modified 03/04/2025 by Sebastian Gallo
+%   Original author: Sebastian Gallo
+%   Last modified 04/08/2025 by Christian Guay
 %   galloseb@mit.edu
+%   christian.guay@hsc.utah.edu
 %
 %************************************************************************** 
 %% 1. Setup Environment
 
 % clear; close all; clc;
 
-dataset_name = 'NeuralRecruit3.mat';  % File name of the .mat dataset to be loaded. Use the flattenConcatEDG.m helper function to concatenate the multiple EDF's from a Sedline Root download first, and save as .mat
+dataset_name = 'ACP_Concatenated.mat';  % File name of the .mat dataset to be loaded. Use the flattenConcatEDG.m helper function to concatenate the multiple EDF's from a Sedline Root download first, and save as .mat
 
 % Define experiment start time (HH:MM:SS)
-experiment_start = [14, 40, 00];  % 08:49:22 (HH, MM, SS)
+experiment_start = [07, 49, 08];  % 08:49:22 (HH, MM, SS)
 
 % Define desired start and end times (HH:MM:SS)
-desired_start = [14, 40, 00];   % 10:06:00
-desired_end = [16, 35, 00];    % 11:36:00
+desired_start = [07, 49, 50];   % 10:06:00
+desired_end = [12, 18, 44];    % 11:36:00
 
 % Setting variable parameters
 channel = 1; % Electrode we're using
-fs = 178;    % Sampling frequency (Hz)
-fmax = 30;   % Max freq to analyze
-cmin = -15;  % Min value in dB for spectral analysis
-cmax = 5;   % Max value in dB for spectral analysis
+fs = 178;    % Sampling frequency (Hz). Sedline fs = 178
+fmax = 20;   % Max freq to analyze
+cmin = -10;  % Min value in dB for spectral analysis
+cmax = 15;   % Max value in dB for spectral analysis
 win_length = 2; % length of window (second)
 Individual_Spectrogram = true; %make false if want all spectrograms/periodograms
 
+% Setting AMI and SMI parameters
+threshold_type = 'baseline'; %baseline (50th percentile of set baseline window) vs. absolute (mcv)
+baseline_start = 300; %time (s) where the baseline starts for automated AMI/SMI threshold calculations
+baseline_end = 600; %time (s) where the baseline ends for automated AMI/SMI threshold calculations
+AMI_threshold = 5; %absolute threshold for AMI
+SMI_threshold = 5; %absolute threshold for SMI
 
 % Channel column in MATLAB - Sedline channel - 10-20 Channel
 % 1 - R2 - F8
@@ -54,7 +62,9 @@ Individual_Spectrogram = true; %make false if want all spectrograms/periodograms
 % 3 - L1 - Fp1
 % 4 - L2 - F7
 
-% Convert all times to seconds from experiment start
+%% Converting times and loading data
+
+% Convert all times to seconds from experiment start (absolute time)
 start_time = (desired_start(1) - experiment_start(1)) * 3600 + ...
              (desired_start(2) - experiment_start(2)) * 60 + ...
              (desired_start(3) - experiment_start(3));
@@ -89,9 +99,6 @@ disp(['Loading EEG data from ', dataset_name, '...']);
     
     % Trim the time vector to match EEG data length
     trimmed_time = time_minutes(start_idx:end_idx);
-
-
-
 
 
 disp('EEG data loaded successfully.');
@@ -195,6 +202,65 @@ end
 
 plot_spectrograms(spectrograms, N, win_length, fs, Individual_Spectrogram,time_vector,fmax,cmin,cmax);
 
+%% 6. Plot raw EEG
+
+figure
+title('Raw EEG');
+axis xy;
+ylabel('Amplitude (mcv)');
+xlabel ('Time (min)');
+plot (trimmed_time, eeg_data)
+ylim([-50 50]); % Adjusted as needed
+
+
+%% 7. Calculate and Plot AMI and SMI
+
+addpath(fullfile(matlabroot, 'toolbox', 'matlab', 'graphics'), '-begin');
+
+
+% Convert baseline times to indices in the trimmed data
+baseline_start_idx = baseline_start - start_time;
+baseline_end_idx = baseline_end - start_time;
+
+% Ensure baseline times are within bounds
+if baseline_start_idx < 0
+    baseline_start_idx = 0;
+    disp('Warning: Adjusted baseline_start to beginning of trimmed data');
+end
+if baseline_end_idx > length(eeg_data)/fs
+    baseline_end_idx = length(eeg_data)/fs;
+    disp('Warning: Adjusted baseline_end to end of trimmed data');
+end
+
+if threshold_type == 'baseline'
+
+%Calculate SMI and SMI with thresholds based on 50th percentile of baseline
+    [AMI, SMI] = computeAMI_SMI(eeg_data, fs, baseline_start_idx, baseline_end_idx);
+else
+
+% Calculate AMI and SMI with absolute thresholds
+[AMI, SMI] = computeAMI_SMI(eeg_data, fs, baseline_start_idx, baseline_end_idx, ...
+    'AlphaThresholdType', 'absolute', 'AlphaThresholdValue', AMI_threshold, ...
+    'SMIThresholdType', 'absolute', 'SMIThresholdValue', SMI_threshold);
+end
+
+% Plot AMI and SMI - using separate figures to avoid subplot issues
+figure('Name', 'Alpha Modulation Index (AMI)');
+plot(trimmed_time, AMI);
+title('Alpha Modulation Index (AMI)');
+xlabel('Time (min)');
+ylabel('AMI');
+ylim([0 1]);
+grid on;
+
+figure('Name', 'Slow Modulation Index (SMI)');
+plot(trimmed_time, SMI);
+title('Slow Modulation Index (SMI)');
+xlabel('Time (min)');
+ylabel('SMI');
+ylim([0 1]);
+grid on;
+
 %% Function: Plot Spectrograms
 function plot_spectrograms(spectrograms, N, win, fs, Individual_Spectrogram, time_vector,fmax,cmin,cmax)
 
@@ -235,5 +301,4 @@ function plot_spectrograms(spectrograms, N, win, fs, Individual_Spectrogram, tim
     xlabel('Time (minutes)');  % Time is always in minutes
     disp('Plotting complete.');
 end
-
 
