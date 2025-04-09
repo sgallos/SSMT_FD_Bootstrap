@@ -102,6 +102,43 @@ title('Manual Multitaper Spectrogram', 'FontSize', 18);
 c = colorbar('southoutside');
 ylabel(c, 'Power (dB)', 'FontSize', 14);
 set(gca, 'FontSize', 14);
+%%
+
+Fs = 178;
+N = 1024;  % or 5 min × Fs for longer signal
+
+% AR(6) coefficients from paper
+ar_coeffs = [3.9515, -7.8885, 9.7340, -7.7435, 3.8078, -0.9472];
+a = [1, -ar_coeffs];
+
+% Generate AR(6) signal with unit-variance white noise
+x = filter(1, a, randn(N,1));  % Do NOT normalize
+
+% DPSS tapers
+TW = 3;
+K = 3;
+[tapers, ~] = dpss(N, TW, K);
+
+% FFT of tapered signals
+J = zeros(N/2+1, K);  % positive frequencies only
+for k = 1:K
+    x_tapered = x .* tapers(:,k);
+    Xk = fft(x_tapered);
+    J(:,k) = Xk(1:N/2+1);  % one-sided
+end
+
+% Multitaper power spectral density
+S_mt = mean(abs(J).^2, 2);           % power
+S_mt_dB = pow2db(S_mt);              % convert to dB
+f_mt = linspace(0, Fs/2, N/2+1);     % frequency axis
+f_mt_norm = f_mt / Fs;               % normalized freq (0 to 0.5)
+
+
+[H, f_true] = freqz(1, a, N/2+1, Fs);  % match resolution
+S_true = abs(H).^2;
+S_true_dB = pow2db(S_true);
+f_true_norm = f_true / Fs;
+
 
 %% Perform Monte Carlo "Gold Standard", Part 1: Plot the true spectrum alongside the manual and chronux estimate
 [S_chronux, f_chronux] = mtspectrumc(x, params);
@@ -368,8 +405,8 @@ plot(f_norm, S_true_dB, 'g-', 'LineWidth', 2);
 plot(f_norm, S_mt_dB, 'k-', 'LineWidth', 2);
 
 % Jackknife confidence intervals (magenta / cyan dashed)
-plot(f_norm, CI_lower_dB_JK, 'm--', 'LineWidth', 1.5);  % lower
-plot(f_norm, CI_upper_dB_JK, 'c--', 'LineWidth', 1.5);  % upper
+plot(f_norm, CI_lower_dB_JK, 'c--', 'LineWidth', 1.5);  % lower
+plot(f_norm, CI_upper_dB_JK, 'm--', 'LineWidth', 1.5);  % upper
 
 % MFDB confidence intervals (red / blue dashed)
 plot(f_norm, CI_lower_dB_mfdb, 'r--', 'LineWidth', 2.5);  % lower
