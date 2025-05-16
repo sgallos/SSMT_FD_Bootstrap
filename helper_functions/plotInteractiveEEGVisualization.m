@@ -1325,6 +1325,9 @@ function CompareWindowsCallback(~, ~)
         % Parse time ranges
         window1_range = str2num(window1_str);
         window2_range = str2num(window2_str);
+
+        window1_range = sscanf(window1_str,'%d:%d');
+        window2_range = sscanf(window2_str,'%d:%d');
         
         if length(window1_range) ~= 2 || length(window2_range) ~= 2
             error('Time ranges must be in format start:end');
@@ -1332,7 +1335,7 @@ function CompareWindowsCallback(~, ~)
         
         % Get aperiodic data
         aperiodic_data = fig.UserData.aperiodic_data;
-        exponent_time = aperiodic_data.exponent_time;
+        exponent_time = aperiodic_data.exponent_time;  
         spectral_exponent = aperiodic_data.spectral_exponent;
         aperiodic_spectra = aperiodic_data.aperiodic_spectra;
         freqs = aperiodic_data.freqs;
@@ -1341,6 +1344,9 @@ function CompareWindowsCallback(~, ~)
         window1_idx = exponent_time >= window1_range(1) & exponent_time <= window1_range(2);
         window2_idx = exponent_time >= window2_range(1) & exponent_time <= window2_range(2);
         
+        window1_idxx = trimmed_time >= window1_range(1) & trimmed_time <= window1_range(2);
+        window2_idxx = trimmed_time >= window2_range(1) & trimmed_time <= window2_range(2);
+
         if sum(window1_idx) < 1 || sum(window2_idx) < 1
             error('Selected time windows contain no data points');
         end
@@ -1361,7 +1367,20 @@ function CompareWindowsCallback(~, ~)
         % Plot average spectra
         plot(ax_compare, freqs, pow2db(avg_spectra1), 'b-', 'LineWidth', 2);
         plot(ax_compare, freqs, pow2db(avg_spectra2), 'r-', 'LineWidth', 2);
-        
+
+        [p1,f1] = pmtm(eeg_data(window1_idxx),10,700,fs);
+        [p2,f2] = pmtm(eeg_data(window2_idxx),10,700,fs);
+
+        % p1 = abs(fft(eeg_data(window1_idx))); N = numel(eeg_data(window1_idx)); f1 = fs*(0:(N-1/fs))/N;
+        % [p2,f2] = pspectrum(eeg_data(window2_idx),fs,'FrequencyResolution',2);
+
+        plot(ax_compare,f1,pow2db(p1),'-r');
+        plot(ax_compare,f2,pow2db(p2),'-b');
+
+        xlim([0,40])
+        % plot(ax_compare,freqs, pow2db(pspectrum(eeg_data(window1_idx),s, 'FrequencyLimits',[freqs(1) freqs(end)])),'-r');
+        % plot(ax_compare,freqs, (pwelch(eeg_data(window2_idx),[],[],freqs,fs)),'-b');
+
         % Add legend with alpha values
         legend(ax_compare, ...
                {['Window 1: \alpha = ' num2str(avg_alpha1, '%.2f')], ...
