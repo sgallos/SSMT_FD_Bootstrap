@@ -30,20 +30,20 @@
 
 clear; clc;
 
-dataset_name = 'BlackSwan.mat';  % File name of the .mat dataset to be loaded. Use the flattenConcatEDG.m helper function to concatenate the multiple EDF's from a Sedline Root download first, and save as .mat
+dataset_name = '20250509_TibialFracture.mat';  % File name of the .mat dataset to be loaded. Use the flattenConcatEDG.m helper function to concatenate the multiple EDF's from a Sedline Root download first, and save as .mat
 
 % Define experiment start time (HH:MM:SS)
 experiment_start = [07, 00, 00];  % 08:49:22 (HH, MM, SS)
 
 % Define desired start and end times (HH:MM:SS)
 desired_start = [07, 00, 00];   % 10:06:00
-desired_end = [08, 00, 00];    % 11:36:00
+desired_end = [08, 22, 25];    % 11:36:00
 
 % Add option for full file import
 use_full_file = true; % Set to true to import entire file, false to use time ranges
 
 % Setting variable parameters
-channel = 3; % Electrode we're using
+channel = 1; % Electrode we're using
 fs = 178;    % Sampling frequency (Hz). Sedline fs = 178, Ripple fs = whatever we downsample to
 artifact_threshold = 100; % Threshold in microvolts for absolute amplitude rejection
 fmax = 40;   % Max freq to analyze
@@ -54,10 +54,10 @@ Individual_Spectrogram = true; %make false if want all spectrograms/periodograms
 
 % Setting AMI and SMI parameters
 threshold_type = 'baseline'; %baseline (50th percentile of set baseline window) vs. absolute (mcv)
-baseline_start = 1500; %time (s) where the baseline starts for automated AMI/SMI threshold calculations
-baseline_end = 1800; %time (s) where the baseline ends for automated AMI/SMI threshold calculations
-AMI_threshold = 5; %absolute threshold for AMI
-SMI_threshold = 5; %absolute threshold for SMI
+baseline_start = 60;  %time (s) where the baseline starts (1 minute)
+baseline_end = 120;   %time (s) where the baseline ends (2 minutes)
+AMI_threshold = 5;    %absolute threshold for AMI (used only if threshold_type is 'absolute')
+SMI_threshold = 5;    %absolute threshold for SMI (used only if threshold_type is 'absolute')
 
 % Channel column in MATLAB - Sedline channel - 10-20 Channel
 % 1 - R2 - F8
@@ -282,6 +282,10 @@ end
 disp('Creating interactive visualization...');
 
 % Call the interactive visualization function with aperiodic data
-plotInteractiveEEGVisualization(eeg_data, spect2, AMI, SMI, trimmed_time, fs, win_length, fmax, cmin, cmax, threshold_type, AMI_threshold, SMI_threshold, baseline_start_idx, baseline_end_idx, aperiodic_data);
+plotInteractiveEEGVisualization(eeg_data, spect2, AMI, SMI, trimmed_time, fs, win_length, fmax, cmin, cmax, threshold_type, AMI_threshold, SMI_threshold, baseline_start_idx, baseline_end_idx, aperiodic_data, dataset_name);
 
 disp('Interactive visualization launched. Use the controls to adjust parameters.');
+
+%% 9. Generate Neural Derecruitment figure 
+
+%[derecruitment_episodes, ami_derivative, time_vector] = detectDerecruitment(AMI, SMI, fs);
