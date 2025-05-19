@@ -1,3 +1,3 @@
 # SSMT_FD_Bootstrap
 
-This is code I developed by heavily modifying code provided by two Kim et. al, 2018 papers. I will continue to develop this README.md as I continue to refine the code. 
+This is code developed primarily by Christian Gauy and Sebastian Gallo. It contains several advancements to code and concepts from Kim et. al, 2018, as well as new code. We will continue to develop this README.md as we refine the code.
