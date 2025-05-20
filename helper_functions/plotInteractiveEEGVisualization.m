@@ -1374,8 +1374,8 @@ function CompareWindowsCallback(~, ~)
         % p1 = abs(fft(eeg_data(window1_idx))); N = numel(eeg_data(window1_idx)); f1 = fs*(0:(N-1/fs))/N;
         % [p2,f2] = pspectrum(eeg_data(window2_idx),fs,'FrequencyResolution',2);
 
-        plot(ax_compare,f1,pow2db(p1),'-r');
-        plot(ax_compare,f2,pow2db(p2),'-b');
+        plot(ax_compare,f1,pow2db(p1),'-b');
+        plot(ax_compare,f2,pow2db(p2),'-r');
 
         xlim([0,40])
         % plot(ax_compare,freqs, pow2db(pspectrum(eeg_data(window1_idx),s, 'FrequencyLimits',[freqs(1) freqs(end)])),'-r');
